@@ -1,84 +1,73 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
-const db = require("./db/db.json")
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const util = require('util');
+const uniqid = require('uniqid');
+const PORT = process.env.PORT || 3001;
 
+const noteData = require('./db/db.json')
+// const { allowedNodeEnvironmentFlags } = require('process');
 
-var app = express();
-const PORT = 3001;                               
+const app = express();
 
+//const getAndRenderNotes = require('./public/assets/js/index')
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
-// GET route for index.html
-app.get('/', (req, res) =>
-    res.sendFile(path.join(__dirname, '/public/assets/index.html'))
-);
-// Get route for notes.html
-app.get('/notes', (req, res) =>
-    res.sendFile(path.join(__dirname, '/public/notes.html'))
+//app.get('/', (req, res) => res.send('Navigate to the public folder'))
+
+app.get('/notes', (req, res) => 
+    res.sendFile(path.join(__dirname, 'public/notes.html'))
 );
 
-// GET request for reviews
 app.get('/api/notes', (req, res) => {
-    // Send a message to the client
-    res.json(db);
-
-    // Log our request to the terminal
-    console.info('request received');
+    //res.readFile(path.join(__dirname, 'db/db.json'))
+    //res.json(noteData);
+    //console.log(noteData);
+    res.json(noteData);
 });
 
-// POST request to add a review
+
+
 app.post('/api/notes', (req, res) => {
-    // Log that a POST request was received
-    console.info('request received');
-
-    app.route('/api/notes')
-        .get(function (req, res) {
-            res.json(db);
+    console.log('in the post route');
+            console.log('in the else of ReadandAppend');
+            var newNote = req.body;
+            console.log('this is before the id', newNote);
+            newNote.id = uniqid();
+            console.log('this is after the id is added', newNote);
+            noteData.push(newNote);
+            fs.writeFile('./db/db.json', JSON.stringify(noteData, null, 4) , (err) => {
+            err ? console.log(err) : res.send(newNote)
         })
-        .post(function (req, res) {
-            let jsonFilePath = path.join(__dirname, "/db/db.json");
-            fs.writeFile(jsonFilePath, JSON.stringify(database), function (err) {
-
-                if (err) {
-                    return console.log(err);
-                }
-                console.log("Your note was saved!");
-
-            });
-
-        });
-
-
-    app.delete("/api/notes/:id", function (req, res) {
-        let jsonFilePath = path.join(__dirname, "/db/db.json");
-        // request to delete note by id.
-        for (let i = 0; i < database.length; i++) {
-
-            if (database[i].id == req.params.id) {
-                // Splice takes i position, and then deletes the 1 note.
-                database.splice(i, 1);
-                break;
-            }
-        }
-        // Write the db.json file again.
-        fs.writeFileSync(jsonFilePath, JSON.stringify(database), function (err) {
-
-            if (err) {
-                return console.log(err);
-            } else {
-                console.log("Your note was deleted!");
-            }
-        });
-        res.json(database);
-    });
-
-
-    
 });
-app.listen(PORT, () =>
-        console.log(`App listening at http://localhost:${PORT} 🚀`)
-    );
+
+app.delete("/api/notes/:id", function (req, res) {
+  let noteID = req.params.id;
+  fs.readFile("db/db.json", "utf8", function (err, data) {
+    let updatedNotes = JSON.parse(data).filter((note) => {
+      console.log("note.id", note.id);
+      console.log("noteID", noteID);
+      return note.id !== noteID;
+    });
+    notes = updatedNotes;
+    const stringifyNote = JSON.stringify(updatedNotes);
+    fs.writeFile("db/db.json", stringifyNote, (err) => {
+      if (err) console.log(err);
+      else {
+        console.log("Note successfully deleted from db.json");
+      }
+    });
+    res.json(stringifyNote);
+  });
+});
+app.get('*', (req, res) =>
+    res.sendFile(path.join(__dirname, 'public/index.html'))
+);
+
+app.listen(PORT, () => {
+    console.log(`Example app listening at http://localHost:${PORT}`);
+});
+    
