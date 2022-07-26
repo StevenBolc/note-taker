@@ -3,7 +3,7 @@ This application will use an Express.js back end and will save and retrieve note
 
 [note-taker-video](https://drive.google.com/file/d/13RNmFXMDy6BEh38TVaVNx230eibaGBr6/view)
 
-[github](https://github.com/StevenBolc/note-taker1)
+[github](https://github.com/StevenBolc/note-taker)
 
 [deployable](https://stevenbolc.github.io/note-taker/)
 
